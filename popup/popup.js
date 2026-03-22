@@ -64,18 +64,8 @@ async function showMainApp(user) {
 }
 
 function setupAuthTabs() {
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('login-form').style.display = tab.dataset.auth === 'login' ? '' : 'none';
-      document.getElementById('register-form').style.display = tab.dataset.auth === 'register' ? '' : 'none';
-    });
-  });
-
   document.getElementById('login-btn').addEventListener('click', handleLogin);
   document.getElementById('google-signin-btn').addEventListener('click', handleGoogleLogin);
-  document.getElementById('register-btn').addEventListener('click', handleRegister);
   document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
   // Enter key submits
