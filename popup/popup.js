@@ -506,12 +506,15 @@ function renderOffers(offers, cards = [], transactions = []) {
   }
 
   // ── Merchant Offers ───────────────────────────────────────────────────────
+  const offersHeader = document.getElementById('offers-section-header');
   if (!offers.length) {
     list.innerHTML = '';
+    if (offersHeader) offersHeader.style.display = 'none';
     empty.style.display = cardsWithIntro.length ? 'none' : '';
     return;
   }
   empty.style.display = 'none';
+  if (offersHeader) offersHeader.style.display = '';
 
   list.innerHTML = offers.map(offer => `
     <div class="offer-card" data-offer-id="${offer._id}">
