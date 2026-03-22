@@ -18,11 +18,6 @@
 
     <!-- Auth Screen -->
     <div id="auth-screen" class="auth-screen">
-      <div class="auth-tabs">
-        <button class="auth-tab active" data-auth="login">Sign In</button>
-        <button class="auth-tab" data-auth="register">Sign Up</button>
-      </div>
-
       <div class="auth-form" id="login-form">
         <button class="auth-google" id="google-signin-btn">
           <img src="../assets/googleLogo.png" alt="Google" class="auth-google-icon">
@@ -35,20 +30,10 @@
         <div class="auth-error" id="login-error"></div>
       </div>
 
-      <div class="auth-form" id="register-form" style="display:none">
-        <div class="form-row">
-          <div class="form-col">
-            <input type="text" class="form-input" id="reg-first" placeholder="First Name">
-          </div>
-          <div class="form-col">
-            <input type="text" class="form-input" id="reg-last" placeholder="Last Name">
-          </div>
-        </div>
-        <input type="text" class="form-input" id="reg-username" placeholder="Username">
-        <input type="email" class="form-input" id="reg-email" placeholder="Email">
-        <input type="password" class="form-input" id="reg-password" placeholder="Password">
-        <button class="auth-submit" id="register-btn">Create Account</button>
-        <div class="auth-error" id="register-error"></div>
+      <div class="auth-signup-sep"></div>
+
+      <div class="auth-form">
+        <a class="auth-signup-btn" href="https://onetap-ten.vercel.app" target="_blank">Sign Up</a>
       </div>
     </div>
 

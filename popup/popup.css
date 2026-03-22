@@ -237,6 +237,28 @@ body {
 .auth-submit:hover { background: var(--blue); }
 .auth-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
+.auth-signup-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+.auth-signup-btn {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  background: var(--red);
+  color: var(--white);
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: background .2s;
+}
+.auth-signup-btn:hover { background: #a8231c; }
+
 .auth-google {
   display: flex;
   align-items: center;
