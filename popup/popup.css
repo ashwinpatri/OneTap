@@ -1266,8 +1266,8 @@ body {
   min-width: 6px;
 }
 
-.intro-offer-bar-complete {
-  background: linear-gradient(90deg, var(--co-success) 0%, #34c76f 100%);
+.intro-offer-bar.intro-offer-bar-complete {
+  background: linear-gradient(90deg, #0055a5 0%, #2196F3 100%);
 }
 
 .intro-offer-pct {
