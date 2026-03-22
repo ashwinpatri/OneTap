@@ -165,9 +165,18 @@ router.get('/google/callback', async (req, res) => {
       return res.redirect(`https://onetap-ten.vercel.app/signin.html?error=not_registered&email=${encodeURIComponent(email)}`);
     }
 
-    // Generate JWT and redirect back to extension
+    // Generate JWT and send to extension via postMessage
     const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.redirect(`chrome-extension://iglldahcailcddegenopplhmeoebhohh/auth-callback.html?token=${jwtToken}&firstName=${encodeURIComponent(user.firstName)}`);
+    res.send(`<!DOCTYPE html><html><head><title>Signing in…</title></head><body>
+      <p style="font-family:sans-serif;text-align:center;margin-top:20vh;">Signing you in…</p>
+      <script>
+        chrome.runtime.sendMessage(
+          'iglldahcailcddegenopplhmeoebhohh',
+          { type: 'GOOGLE_AUTH', token: '${jwtToken}' },
+          function() { window.close(); }
+        );
+      </script>
+    </body></html>`);
   } catch (err) {
     res.redirect('https://onetap-ten.vercel.app/signin.html?error=server_error');
   }
