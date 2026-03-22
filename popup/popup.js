@@ -12,6 +12,15 @@ async function init() {
     showMainApp(authRes.user);
   } else {
     showAuthScreen();
+    // Auto-login if service worker completes Google OAuth while popup is open
+    chrome.storage.onChanged.addListener(function onAuthChange(changes, area) {
+      if (area === 'local' && changes.authToken) {
+        chrome.storage.onChanged.removeListener(onAuthChange);
+        sendMessage('CHECK_AUTH').then(res => {
+          if (res.loggedIn) showMainApp(res.user);
+        });
+      }
+    });
   }
 }
 
@@ -47,7 +56,7 @@ async function showMainApp(user) {
 
   renderCards(cardsRes.cards || []);
   renderAIRec(cardsRes.cards || []);
-  renderOffers(offersRes.offers || []);
+  renderOffers(offersRes.offers || [], cardsRes.cards || [], txRes.transactions || []);
   renderActivity(txRes.transactions || [], cardsRes.cards || []);
   renderSettings(settingsRes.settings || {}, cardsRes.cards || []);
   renderStats(txRes.transactions || []);
@@ -55,25 +64,23 @@ async function showMainApp(user) {
 }
 
 function setupAuthTabs() {
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('login-form').style.display = tab.dataset.auth === 'login' ? '' : 'none';
-      document.getElementById('register-form').style.display = tab.dataset.auth === 'register' ? '' : 'none';
-    });
-  });
-
   document.getElementById('login-btn').addEventListener('click', handleLogin);
-  document.getElementById('register-btn').addEventListener('click', handleRegister);
+  document.getElementById('google-signin-btn').addEventListener('click', handleGoogleLogin);
   document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
   // Enter key submits
   ['login-username', 'login-password'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', (e) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLogin();
     });
   });
+}
+
+function handleGoogleLogin() {
+  const session = crypto.randomUUID();
+  sendMessage('START_GOOGLE_POLL', { session });
+  chrome.tabs.create({ url: `https://onetap-ten.vercel.app/signin.html?session=${session}` });
 }
 
 async function handleLogin() {
@@ -438,26 +445,96 @@ document.getElementById('add-card-submit').addEventListener('click', async () =>
 });
 
 // ===== Offers =====
-function renderOffers(offers) {
+function renderOffers(offers, cards = [], transactions = []) {
   const list = document.getElementById('offers-list');
   const empty = document.getElementById('offers-empty');
 
+  // ── Sign-up Bonus Progress ────────────────────────────────────────────────
+  const bonusSection = document.getElementById('intro-offers-section');
+  const cardsWithIntro = cards.filter(c => c.introOffer && !c.introOffer.earned);
+
+  if (cardsWithIntro.length > 0) {
+    // Build a spend-per-card map from transaction history
+    const spentByCard = {};
+    for (const tx of transactions) {
+      const cid = tx.cardId?._id || tx.cardId;
+      spentByCard[cid] = (spentByCard[cid] || 0) + tx.amount;
+    }
+
+    bonusSection.innerHTML = `
+      <div class="intro-offers-header">
+        <span class="intro-offers-label">Sign-up Bonus Progress</span>
+      </div>
+      ${cardsWithIntro.map(card => {
+        const o = card.introOffer;
+        const spent = spentByCard[card._id] || 0;
+        const pct = o.spendRequired > 0 ? Math.min(100, Math.round((spent / o.spendRequired) * 100)) : 100;
+        const remaining = Math.max(0, o.spendRequired - spent);
+        const bonus = o.bonusUnit === 'cash'
+          ? `$${o.bonusAmount.toLocaleString()} Cash`
+          : `${o.bonusAmount.toLocaleString()} ${o.bonusUnit.charAt(0).toUpperCase() + o.bonusUnit.slice(1)}`;
+
+        let daysLeft = null;
+        const startMs = o.startDate ? new Date(o.startDate) : new Date(card.createdAt);
+        if (startMs && o.timeframeDays) {
+          const endMs = startMs.getTime() + o.timeframeDays * 86400000;
+          daysLeft = Math.max(0, Math.ceil((endMs - Date.now()) / 86400000));
+        }
+
+        const earned = remaining === 0;
+
+        return `
+          <div class="intro-offer-card">
+            <div class="intro-offer-head">
+              <div class="intro-offer-head-left">
+                <div class="intro-offer-card-name">${card.productName}</div>
+                <div class="intro-offer-desc">${o.description}</div>
+              </div>
+              <div class="intro-offer-bonus-pill">${bonus}</div>
+            </div>
+
+            <div class="intro-offer-progress-section">
+              <div class="intro-offer-bar-row">
+                <div class="intro-offer-bar-wrap">
+                  <div class="intro-offer-bar ${earned ? 'intro-offer-bar-complete' : ''}" style="width:${pct}%"></div>
+                </div>
+                <span class="intro-offer-pct">${pct}%</span>
+              </div>
+              <div class="intro-offer-meta">
+                <span class="intro-offer-spent">$${spent.toFixed(0)} <span class="intro-offer-meta-of">of</span> $${o.spendRequired.toLocaleString()}</span>
+                ${daysLeft !== null
+                  ? `<span class="intro-offer-days ${daysLeft < 14 ? 'intro-offer-days-urgent' : ''}">${daysLeft}d left</span>`
+                  : ''}
+              </div>
+              ${earned
+                ? `<div class="intro-offer-status intro-offer-status-done">✓ Bonus earned!</div>`
+                : `<div class="intro-offer-status">$${remaining.toFixed(0)} more to unlock your bonus</div>`}
+            </div>
+          </div>`;
+      }).join('')}`;
+    bonusSection.style.display = '';
+  } else {
+    bonusSection.style.display = 'none';
+  }
+
+  // ── Merchant Offers ───────────────────────────────────────────────────────
+  const offersHeader = document.getElementById('offers-section-header');
   if (!offers.length) {
     list.innerHTML = '';
-    empty.style.display = '';
+    if (offersHeader) offersHeader.style.display = 'none';
+    empty.style.display = cardsWithIntro.length ? 'none' : '';
     return;
   }
   empty.style.display = 'none';
+  if (offersHeader) offersHeader.style.display = '';
 
   list.innerHTML = offers.map(offer => `
     <div class="offer-card" data-offer-id="${offer._id}">
       <div class="offer-left">
         <div class="offer-icon">${offer.merchantIcon || '🏷'}</div>
-        <div>
-          <div class="offer-merchant">${offer.merchant}</div>
-          <div class="offer-desc">${offer.description}</div>
-          ${offer.expiresAt ? `<div class="offer-expiry">Expires ${formatDate(offer.expiresAt)}</div>` : ''}
-        </div>
+        <div class="offer-merchant">${offer.merchant}</div>
+        <div class="offer-desc">${offer.description}</div>
+        ${offer.expiresAt ? `<div class="offer-expiry">Expires ${formatDate(offer.expiresAt)}</div>` : ''}
       </div>
       <button class="offer-btn ${offer.activated ? 'offer-btn-activated' : 'offer-btn-activate'}">
         ${offer.activated ? 'Active' : 'Activate'}
@@ -850,16 +927,22 @@ function drawSpendingChart(spendingSummary) {
     entertainment: 'Entertainment', 'car-rental': 'Car Rental',
     gas: 'Gas', transit: 'Transit', shopping: 'Shopping',
     general: 'General', everything: 'Everything Else',
+    'bass-pro': 'Bass Pro',
   };
 
   const entries = Object.entries(spendingSummary).sort((a, b) => b[1] - a[1]);
   const total = entries.reduce((s, [, v]) => s + v, 0);
   if (total === 0) return;
 
-  canvas.width = 120;
-  canvas.height = 120;
+  const SIZE = 130;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = SIZE * dpr;
+  canvas.height = SIZE * dpr;
+  canvas.style.width = SIZE + 'px';
+  canvas.style.height = SIZE + 'px';
   const ctx = canvas.getContext('2d');
-  const cx = 60, cy = 60, r = 56, innerR = r * 0.52;
+  ctx.scale(dpr, dpr);
+  const cx = SIZE / 2, cy = SIZE / 2, r = SIZE / 2 - 4, innerR = r * 0.52;
 
   let angle = -Math.PI / 2;
   entries.forEach(([, amt], i) => {
@@ -878,11 +961,11 @@ function drawSpendingChart(spendingSummary) {
   ctx.fillStyle = '#ffffff';
   ctx.fill();
 
-  legend.innerHTML = entries.slice(0, 6).map(([cat, amt], i) => `
+  legend.innerHTML = entries.map(([cat, amt], i) => `
     <div class="ai-rec-legend-item">
-      <div class="ai-rec-legend-dot" style="background:${COLORS[i % COLORS.length]}"></div>
-      <div class="ai-rec-legend-label">${CAT_LABELS[cat] || cat}</div>
-      <div class="ai-rec-legend-pct">$${amt}</div>
+      <span class="ai-rec-legend-dot" style="background:${COLORS[i % COLORS.length]}"></span>
+      <span class="ai-rec-legend-label">${CAT_LABELS[cat] || cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+      <span class="ai-rec-legend-pct">$${amt.toLocaleString()}</span>
     </div>`).join('');
 
   wrap.style.display = 'flex';

@@ -55,15 +55,17 @@
   --transition:  0.15s ease;
 }
 
+html {
+  background: transparent;
+}
+
 body {
   width: 380px;
-  min-height: 540px;
-  max-height: 600px;
   font-family: var(--font);
-  font-weight: 500;
-  background: var(--off-white);
+  font-weight: 700;
+  background: transparent;
   color: var(--text);
-  overflow: hidden;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
@@ -71,14 +73,16 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  height: 600px;
+  min-height: unset;
+  background: var(--off-white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 #main-app {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 /* ===== Header ===== */
@@ -90,7 +94,18 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 1;
 }
 
 .header-brand {
@@ -100,9 +115,11 @@ body {
 }
 
 .header-logo {
-  height: 64px;
-  width: auto;
-  margin: -12px -8px;
+  height: 44px;
+  width: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0;
 }
 
 .header-title {
@@ -126,7 +143,7 @@ body {
 .header-sub {
   font-size: 10.5px;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: .01em;
 }
 .header-sub:empty { display: none; }
@@ -181,7 +198,6 @@ body {
 
 /* ===== Auth Screen ===== */
 .auth-screen {
-  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -217,7 +233,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 24px 24px 20px;
+  padding: 16px 24px;
 }
 
 .auth-submit {
@@ -237,6 +253,63 @@ body {
 .auth-submit:hover { background: var(--blue); }
 .auth-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
+.auth-signup-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.auth-signup-btn {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  background: var(--red);
+  color: var(--white);
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: background .2s;
+}
+.auth-signup-btn:hover { background: #a8231c; }
+
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.auth-google:hover { border-color: var(--blue); }
+.auth-google-icon { width: 18px; height: 18px; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b4b8bc;
+  font-size: .8rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .auth-error {
   color: var(--red);
   font-size: 12px;
@@ -247,13 +320,10 @@ body {
 /* ===== Tab Content ===== */
 .tab-content {
   display: none;
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px;
+  padding: 14px 14px 20px;
   background: var(--off-white);
 }
 .tab-content.active { display: block; }
-.tab-content::-webkit-scrollbar { width: 0; }
 
 .empty-state {
   text-align: center;
@@ -386,7 +456,7 @@ body {
   font-size: 9px;
   color: var(--text-light);
   text-transform: capitalize;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Card 3-dot Menu */
@@ -741,7 +811,7 @@ body {
 .ai-rec-card-name {
   font-size: 10px;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .ai-rec-rate {
@@ -768,8 +838,8 @@ body {
 .ai-rec-chart-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px 12px;
+  gap: 0;
 }
 
 .ai-rec-legend {
@@ -783,18 +853,27 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10.5px;
+  padding: 4px 0;
+  font-size: 12px;
 }
 
 .ai-rec-legend-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.ai-rec-legend-label { flex: 1; color: var(--text); font-weight: 500; }
-.ai-rec-legend-pct { color: var(--text-light); font-weight: 600; }
+.ai-rec-legend-label {
+  color: var(--co-gray-700, #444);
+  font-weight: 500;
+}
+
+.ai-rec-legend-pct {
+  color: var(--co-dark);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 
 /* ===== Recommendation & Savings ===== */
 .rec-loading {
@@ -993,16 +1072,18 @@ body {
 
 /* Spending chart */
 .spending-chart-center {
+  flex: 0 0 47%;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 14px 14px 6px;
 }
 
 .spending-legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  padding: 6px 10px 10px;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-right: 4px;
 }
 
 /* Savings tally */
@@ -1103,36 +1184,204 @@ body {
   color: var(--muted);
 }
 
+/* ===== Sign-up Bonus Progress ===== */
+#intro-offers-section {
+  margin-bottom: 20px;
+}
+
+.intro-offers-header {
+  padding: 0 2px 8px;
+}
+
+.intro-offers-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--co-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.intro-offer-card {
+  background: var(--co-white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+}
+
+/* Top section — card name + bonus pill */
+.intro-offer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px 10px;
+  background: #f0f4f8;
+  border-bottom: 1px solid #dde5ee;
+}
+
+.intro-offer-head-left {
+  min-width: 0;
+  flex: 1;
+}
+
+.intro-offer-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--co-dark);
+  margin-bottom: 3px;
+}
+
+.intro-offer-desc {
+  font-size: 11px;
+  color: var(--co-gray-500);
+  line-height: 1.4;
+}
+
+.intro-offer-bonus-pill {
+  background: var(--co-blue);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Progress section */
+.intro-offer-progress-section {
+  padding: 10px 14px 12px;
+}
+
+.intro-offer-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.intro-offer-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: #d0d9e3;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.intro-offer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0055a5 0%, #2196F3 100%);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  min-width: 6px;
+}
+
+.intro-offer-bar.intro-offer-bar-complete {
+  background: linear-gradient(90deg, #0055a5 0%, #2196F3 100%);
+}
+
+.intro-offer-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--co-blue);
+  min-width: 32px;
+  text-align: right;
+}
+
+.intro-offer-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.intro-offer-spent {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--co-dark);
+}
+
+.intro-offer-meta-of {
+  font-weight: 400;
+  color: var(--co-gray-400);
+}
+
+.intro-offer-days {
+  font-size: 11px;
+  color: var(--co-gray-400);
+  background: var(--co-gray-100);
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.intro-offer-days-urgent {
+  color: #c0392b;
+  background: #fdecea;
+}
+
+.intro-offer-status {
+  font-size: 11px;
+  color: var(--co-gray-500);
+}
+
+.intro-offer-status-done {
+  font-weight: 700;
+  color: var(--co-success);
+}
+
+/* ===== Offers Section Header ===== */
+.offers-section-header {
+  padding: 14px 2px 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--co-gray-200);
+}
+
+.offers-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--co-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 /* ===== Offers ===== */
 .offers-list {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.offers-list::-webkit-scrollbar { display: none; }
 
 .offer-card {
   background: var(--white);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 12px 12px 10px;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
   box-shadow: var(--shadow-card);
   transition: box-shadow var(--transition);
+  min-width: 138px;
+  max-width: 138px;
+  flex-shrink: 0;
 }
-.offer-card:hover {
-  box-shadow: var(--shadow-md);
-}
+.offer-card:hover { box-shadow: var(--shadow-md); }
 
 .offer-left {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 5px;
   min-width: 0;
+  flex: 1;
 }
 
 .offer-icon {
-  font-size: 20px;
+  font-size: 22px;
   width: 36px;
   height: 36px;
   display: flex;
@@ -1140,11 +1389,11 @@ body {
   justify-content: center;
   background: var(--off-white);
   border-radius: var(--radius);
-  flex-shrink: 0;
+  margin-bottom: 2px;
 }
 
 .offer-merchant {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -1152,19 +1401,23 @@ body {
 }
 
 .offer-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-light);
-  margin-top: 1px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .offer-expiry {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--muted);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .offer-btn {
-  padding: 6px 14px;
+  padding: 5px 0;
   border-radius: 4px;
   border: none;
   font-family: var(--font);
@@ -1172,8 +1425,9 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: all var(--transition);
-  flex-shrink: 0;
-  margin-left: 8px;
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
 }
 
 .offer-btn-activate { background: var(--red); color: white; }
@@ -1354,7 +1608,7 @@ body {
   border-radius: 4px;
   font-family: var(--font);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
   background: var(--white);
   transition: border-color var(--transition), box-shadow var(--transition);
@@ -1540,6 +1794,6 @@ body {
   font-size: 10px;
   color: rgba(255,255,255,0.4);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 .footer-link:hover { color: rgba(255,255,255,0.7); text-decoration: underline; }
