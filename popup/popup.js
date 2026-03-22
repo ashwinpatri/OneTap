@@ -768,6 +768,8 @@ async function loadRecommendation() {
     const rawName = res.recommendedCardName || null;
     const isNone = !rawName || /^none/i.test(rawName);
 
+    const tallySection = document.getElementById('insights-savings-section');
+
     if (isNone) {
       // Clean "already covered" view — no card image, no sections, just explanation
       const explanation = extractNoneExplanation(res.recommendation);
@@ -776,6 +778,7 @@ async function loadRecommendation() {
         <div class="rec-covered-title">You're already optimized</div>
         <div class="rec-covered-body">${explanation || "Your current cards are already well-suited for your spending habits — no new card would meaningfully improve your rewards."}</div>
       </div>`;
+      if (tallySection) tallySection.style.display = 'none';
       return;
     }
 
@@ -826,8 +829,52 @@ async function loadRecommendation() {
         document.getElementById('savings-toggle').classList.toggle('collapsed');
       });
     }
+
+    // Populate standalone savings tally section below the rec card
+    if (tallySection) {
+      const tallyBody = document.getElementById('savings-tally-body');
+      const pct = actualEarned > 0
+        ? Math.round((additionalValue / actualEarned) * 100)
+        : 0;
+      const barActual = 100;
+      const barPotential = actualEarned > 0
+        ? Math.min(Math.round((potentialSavings / actualEarned) * 100), 200)
+        : 100;
+
+      tallyBody.innerHTML = `
+        <div class="tally-row">
+          <div class="tally-row-label">
+            <span class="tally-dot tally-dot-actual"></span>
+            <span class="tally-label-text">Earned with current cards</span>
+          </div>
+          <div class="tally-bar-wrap">
+            <div class="tally-bar tally-bar-actual" style="width:${barActual}%"></div>
+          </div>
+          <span class="tally-amount">$${actualEarned.toFixed(2)}</span>
+        </div>
+        <div class="tally-row">
+          <div class="tally-row-label">
+            <span class="tally-dot tally-dot-potential"></span>
+            <span class="tally-label-text">Potential with ${cardName}</span>
+          </div>
+          <div class="tally-bar-wrap">
+            <div class="tally-bar tally-bar-potential" style="width:${barPotential}%"></div>
+          </div>
+          <span class="tally-amount tally-amount-potential">$${potentialSavings.toFixed(2)}</span>
+        </div>
+        <div class="tally-delta">
+          <span class="tally-delta-label">You left</span>
+          <span class="tally-delta-value">$${additionalValue.toFixed(2)}</span>
+          <span class="tally-delta-label">on the table${pct > 0 ? ` — ${pct}% more rewards` : ''}</span>
+        </div>
+        <div class="tally-note">Estimate based on transaction history. Points/miles valued at $0.01 each.</div>`;
+
+      tallySection.style.display = '';
+    }
   } else {
     el.innerHTML = `<div class="rec-loading">Server warming up — try again in a moment.</div>`;
+    const tallySection = document.getElementById('insights-savings-section');
+    if (tallySection) tallySection.style.display = 'none';
   }
 }
 

@@ -981,6 +981,127 @@ body {
   border: 1px solid rgba(255,255,255,0.3);
 }
 
+/* ===== Savings Tally Section ===== */
+.insights-savings-tally {
+  background: var(--co-white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.savings-tally-header {
+  background: var(--co-blue);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.savings-tally-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.savings-tally-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+}
+
+.savings-tally-body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tally-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tally-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.tally-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tally-dot-actual    { background: var(--co-gray-400); }
+.tally-dot-potential { background: var(--co-blue); }
+
+.tally-label-text {
+  font-size: 12px;
+  color: var(--co-gray-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tally-bar-wrap {
+  flex: 1 1 0;
+  height: 8px;
+  background: var(--co-gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 40px;
+}
+
+.tally-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+.tally-bar-actual    { background: var(--co-gray-400); }
+.tally-bar-potential { background: var(--co-blue); }
+
+.tally-amount {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--co-gray-700);
+  min-width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.tally-amount-potential { color: var(--co-blue); }
+
+.tally-delta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 12px;
+  background: rgba(13, 110, 253, 0.07);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(13, 110, 253, 0.15);
+  margin-top: 2px;
+}
+
+.tally-delta-label {
+  font-size: 12px;
+  color: var(--co-gray-600);
+}
+
+.tally-delta-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--co-blue);
+}
+
+.tally-note {
+  font-size: 11px;
+  color: var(--co-gray-400);
+  text-align: center;
+}
+
 /* ===== Offers ===== */
 .offers-list {
   display: flex;
