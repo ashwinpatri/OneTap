@@ -1,6 +1,6 @@
 // MongoDB API client
 const API_BASE = 'https://onetap-api.onrender.com/api';
-
+//Adding a comment here
 // Get stored auth token
 async function getToken() {
   const data = await chrome.storage.local.get('authToken');
