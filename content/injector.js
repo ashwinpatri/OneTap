@@ -464,7 +464,12 @@ const OneTapInjector = (() => {
   }
 
   function updateAmount(price) {
-    if (overlayData) overlayData.amount = price;
+    if (!overlayData) return;
+    overlayData.amount = price;
+    // If the overlay is already open, rebuild it with the correct price
+    if (shadowRoot && shadowRoot.querySelector('.onetap-overlay-backdrop')) {
+      showOverlay();
+    }
   }
 
   return { show, updateAmount };
