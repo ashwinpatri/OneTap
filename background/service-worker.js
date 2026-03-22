@@ -179,13 +179,12 @@ async function handleMessage(message) {
       if (!cards || cards.length === 0) return { bestCard: null, offers: [], allCards: [] };
 
       const { merchant } = message.payload;
-      // Simple best card selection using tiered rewards
-      const bestCard = selectBestCard(merchant, cards);
+      const { bestCard, allScoredCards } = selectBestCard(merchant, cards);
       const matchingOffers = (offers || []).filter(o =>
         o.merchant.toLowerCase() === merchant.toLowerCase() ||
         merchant.toLowerCase().includes(o.merchant.toLowerCase())
       );
-      return { bestCard, offers: matchingOffers, allCards: cards };
+      return { bestCard, offers: matchingOffers, allCards: allScoredCards };
     }
 
     case 'REFRESH_DATA': {
@@ -215,6 +214,7 @@ function selectBestCard(merchant, cards) {
     hertz: 'car-rental', enterprise: 'car-rental', avis: 'car-rental',
     netflix: 'streaming', spotify: 'streaming', hulu: 'streaming', disney: 'streaming',
     amc: 'entertainment', cinema: 'entertainment',
+    basspro: 'bass-pro', cabela: 'bass-pro',
   };
 
   let category = 'general';
@@ -243,13 +243,58 @@ function selectBestCard(merchant, cards) {
   scored.sort((a, b) => b.rate - a.rate);
   const best = scored[0];
 
+  const CATEGORY_LABELS = {
+    dining: 'dining & restaurants',
+    groceries: 'grocery stores',
+    flights: 'flights',
+    hotels: 'hotels',
+    'car-rental': 'car rentals',
+    streaming: 'streaming services',
+    entertainment: 'entertainment',
+    gas: 'gas stations',
+    transit: 'rideshares & transit',
+    'bass-pro': 'Bass Pro Shops & Cabela\'s',
+  };
+
+  function formatReward(rate, unit) {
+    if (unit === 'percent_cashback') return `${rate}% cash back`;
+    if (unit === 'miles') return `${rate}x miles`;
+    return `${rate}x points`;
+  }
+
+  const bestLabel = formatReward(best.rate, best.tier?.unit || 'points');
+  const categoryLabel = CATEGORY_LABELS[best.category] || 'this purchase';
+
+  let reason;
+  if (best.category !== 'general') {
+    reason = `${merchant} is a ${categoryLabel} merchant — your ${best.card.productName} earns ${bestLabel} here`;
+  } else {
+    reason = `Your ${best.card.productName} earns ${bestLabel} on every purchase`;
+  }
+
+  // Attach scores to all cards so the UI can show per-merchant rates
+  const scoredCards = scored.map(s => ({
+    ...s.card,
+    _score: s.rate,
+    _unit: s.tier?.unit || 'points',
+    _category: s.category,
+    _rewardLabel: formatReward(s.rate, s.tier?.unit || 'points'),
+  }));
+
+  const runnerUp = scored[1] || null;
+
   return {
-    ...best.card,
-    _score: best.rate,
-    _unit: best.tier?.unit || 'points',
-    _category: best.category,
-    _reason: best.category !== 'general'
-      ? `Best for ${best.category} — earns ${best.rate}x`
-      : `Earns ${best.rate}x on this purchase`,
+    bestCard: {
+      ...best.card,
+      _score: best.rate,
+      _unit: best.tier?.unit || 'points',
+      _category: best.category,
+      _reason: reason,
+      _runnerUp: runnerUp ? {
+        productName: runnerUp.card.productName,
+        rewardLabel: formatReward(runnerUp.rate, runnerUp.tier?.unit || 'points'),
+      } : null,
+    },
+    allScoredCards: scoredCards,
   };
 }

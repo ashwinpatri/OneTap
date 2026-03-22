@@ -231,12 +231,166 @@
   letter-spacing: 1px;
 }
 
-.onetap-card-reason {
+/* ===== Card Insights Panel ===== */
+.onetap-card-insights {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onetap-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.onetap-insight-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.onetap-insight-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.onetap-insight-text {
   font-size: 13px;
-  opacity: 0.9;
-  margin-top: var(--space-sm);
-  padding-top: var(--space-sm);
-  border-top: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.onetap-insight-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.onetap-progress-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.onetap-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.onetap-insight-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.onetap-insight-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.onetap-insight-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.onetap-insight-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Reward tiers list */
+.onetap-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onetap-tier-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.onetap-tier-rate {
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+.onetap-tier-cats {
+  color: var(--text-primary);
+}
+
+.onetap-tier-qualifier {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Comparison table */
+.onetap-compare-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onetap-compare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.onetap-compare-row:last-child {
+  border-bottom: none;
+}
+
+.onetap-compare-best {
+  font-weight: 600;
+}
+
+.onetap-compare-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.onetap-compare-rate {
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.onetap-compare-dim {
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 /* ===== Card List (Other Cards) ===== */
@@ -284,6 +438,18 @@
   opacity: 0.7;
   font-family: 'SF Mono', 'Menlo', monospace;
   margin-top: 2px;
+}
+
+.onetap-chip-rate {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  opacity: 0.85;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  width: fit-content;
 }
 
 /* ===== Offers ===== */
@@ -514,6 +680,362 @@
 
 @keyframes onetap-check {
   to { stroke-dashoffset: 0; }
+}
+
+/* ===== Section A: Top Recommendation ===== */
+.onetap-section-rec {
+  background: linear-gradient(180deg, #f0f5fa 0%, var(--co-white) 100%);
+}
+
+.onetap-rec-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--co-blue);
+  margin-bottom: 10px;
+}
+
+.onetap-rec-card {
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+}
+
+.onetap-rec-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.onetap-rec-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.onetap-rec-number {
+  font-size: 13px;
+  opacity: 0.75;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.onetap-rec-network {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.6;
+  background: rgba(255,255,255,0.15);
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+
+.onetap-rec-earn-block {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 12px;
+}
+
+.onetap-rec-rate-primary {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.onetap-rec-earn-context {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 3px;
+}
+
+.onetap-rec-vs {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 5px;
+}
+
+.onetap-rec-reason {
+  font-size: 13px;
+  color: var(--co-gray-500);
+  margin-top: 10px;
+  line-height: 1.45;
+  padding: 0 2px;
+}
+
+/* ===== Section B: Preference Alternatives ===== */
+.onetap-alts-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.onetap-alts-list::-webkit-scrollbar { height: 3px; }
+.onetap-alts-list::-webkit-scrollbar-thumb { background: var(--co-gray-300); border-radius: 3px; }
+
+.onetap-alt-chip {
+  flex-shrink: 0;
+  width: 150px;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 13px;
+  cursor: pointer;
+  font-family: var(--font);
+  text-align: left;
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.onetap-alt-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.onetap-alt-pref {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+  background: rgba(0,0,0,0.15);
+  border-radius: 3px;
+  padding: 2px 5px;
+  width: fit-content;
+}
+
+.onetap-alt-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.onetap-alt-earn {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.onetap-alt-note {
+  display: block;
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ===== Section C: Comparison Table ===== */
+.onetap-cmp-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.onetap-cmp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--co-gray-100);
+}
+
+.onetap-cmp-row-best {
+  background: #EEF4FB;
+  border: 1px solid #C5D9EF;
+}
+
+.onetap-cmp-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.onetap-cmp-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--co-dark);
+}
+
+.onetap-cmp-best-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--co-blue);
+  color: white;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.onetap-cmp-sel-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--co-gray-400);
+  color: white;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.onetap-cmp-earn {
+  display: block;
+  font-size: 12px;
+  color: var(--co-gray-500);
+  margin-top: 1px;
+}
+
+.onetap-cmp-bar-wrap {
+  height: 5px;
+  background: var(--co-gray-200);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.onetap-cmp-bar {
+  height: 100%;
+  background: var(--co-gray-300);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.onetap-cmp-bar-top {
+  background: var(--co-blue);
+}
+
+.onetap-cmp-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--co-blue);
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
+}
+
+.onetap-cmp-value-dim {
+  color: var(--co-gray-400);
+  font-weight: 500;
+}
+
+/* ===== Section D: Deeper Reasoning ===== */
+.onetap-section-deep {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.onetap-deep {
+  width: 100%;
+}
+
+.onetap-deep-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg) var(--space-xl);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--co-blue);
+  cursor: pointer;
+  list-style: none;
+  border-top: 1px solid var(--co-gray-200);
+  border-bottom: 1px solid var(--co-gray-200);
+  user-select: none;
+}
+
+.onetap-deep-summary::-webkit-details-marker { display: none; }
+
+.onetap-deep-chevron {
+  font-size: 18px;
+  font-weight: 400;
+  transition: transform var(--transition);
+  color: var(--co-gray-400);
+}
+
+.onetap-deep[open] .onetap-deep-chevron {
+  transform: rotate(90deg);
+}
+
+.onetap-deep-body {
+  padding: var(--space-md) var(--space-xl) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--co-gray-200);
+}
+
+.onetap-deep-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.onetap-deep-key {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--co-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding-top: 2px;
+}
+
+.onetap-deep-val {
+  font-size: 13px;
+  color: var(--co-dark);
+  line-height: 1.45;
+}
+
+.onetap-deep-sub {
+  font-size: 11px;
+  color: var(--co-gray-400);
+  margin-top: 2px;
+}
+
+.onetap-deep-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onetap-deep-tier {
+  font-size: 12px;
+  color: var(--co-dark);
+  line-height: 1.4;
+}
+
+.onetap-deep-qualifier {
+  font-style: italic;
+  color: var(--co-gray-400);
+  font-size: 11px;
+}
+
+.onetap-progress-bar {
+  height: 4px;
+  background: var(--co-gray-200);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.onetap-progress-fill {
+  height: 100%;
+  background: var(--co-blue);
+  border-radius: 2px;
+  transition: width 0.4s ease;
 }
 
 /* ===== Responsive ===== */
