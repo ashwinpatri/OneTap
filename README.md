@@ -11,7 +11,7 @@
 </h1>
 
 <p><strong>Frictionless Capital One checkout — everywhere.</strong><br/>
-Auto-applies your best offers, splits transactions, and lets you pay in one tap on any site.</p>
+Auto-applies your best card optimizing for rewards, and lets you pay in one tap on any site.</p>
 
 <br/>
 
