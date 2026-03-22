@@ -53,7 +53,7 @@ async function showMainApp(user) {
   renderActivity(txRes.transactions || [], cardsRes.cards || []);
   renderSettings(settingsRes.settings || {}, cardsRes.cards || []);
   renderStats(txRes.transactions || []);
-  loadRecommendation();
+  loadInsights();
 }
 
 function setupAuthTabs() {
@@ -664,15 +664,28 @@ function renderAIRec(cards) {
   container.innerHTML = rows.join('');
 }
 
+async function loadInsights() {
+  // Load spending chart and AI recommendation independently
+  loadSpendingChart();
+  loadRecommendation();
+}
+
+async function loadSpendingChart() {
+  const res = await sendMessage('GET_SPENDING');
+  if (res.success && res.spendingSummary) {
+    drawSpendingChart(res.spendingSummary);
+  }
+}
+
 async function loadRecommendation() {
   const el = document.getElementById('ai-rec-body');
+  el.style.display = 'block';
   el.textContent = 'Analyzing your spending...';
   const res = await sendMessage('GET_RECOMMENDATION');
   if (res.success && res.recommendation) {
     el.textContent = res.recommendation;
-    if (res.spendingSummary) drawSpendingChart(res.spendingSummary);
   } else {
-    el.textContent = '';
+    el.textContent = 'Could not load recommendation — server may be warming up, try again in a moment.';
   }
 }
 
