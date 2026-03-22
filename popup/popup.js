@@ -689,8 +689,7 @@ function findCardImageUrl(cardName) {
 }
 
 function renderMarkdown(text) {
-  // Strip the "Recommended Card:" line since we display it separately as card art + name
-  // Also unescape LaTeX-style dollar signs that Gemini sometimes outputs (\$ -> $)
+  // Strip "Recommended Card:" line; unescape \$ -> $
   const body = text
     .replace(/(?:\*\*)?Recommended Card:(?:\*\*)?\s*[^\n]*/i, '')
     .replace(/\\\$/g, '$')
@@ -700,6 +699,9 @@ function renderMarkdown(text) {
   const htmlParts = [];
   let inList = false;
 
+  // Known section header prefixes
+  const HEADER_RE = /^(?:\*\*)?(Why This Card[^:]*|Key Benefits[^:]*|Drawbacks[^:]*)(?:\*\*)?:\s*(.*)/i;
+
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) {
@@ -707,18 +709,22 @@ function renderMarkdown(text) {
       continue;
     }
 
-    // Section headers — either **Bold:** or plain "Header Text:"
-    // Matches: "**Why This Card...:**" or "Why This Card...:" or "Key Benefits:" etc.
-    const boldHeader = /^\*\*([^*]+)\*\*:?\s*$/.test(line);
-    const plainHeader = /^(Why This Card|Key Benefits|Drawbacks|Summary)[^:]*:/i.test(line);
-    if (boldHeader || plainHeader) {
+    // Section header — may have inline content after the colon on the same line
+    const headerMatch = line.match(HEADER_RE);
+    if (headerMatch) {
       if (inList) { htmlParts.push('</ul>'); inList = false; }
-      const header = line.replace(/\*\*/g, '').replace(/:$/, '').trim();
-      htmlParts.push(`<div class="rec-section-header">${header}:</div>`);
+      const label = headerMatch[1].replace(/\*\*/g, '').trim();
+      htmlParts.push(`<div class="rec-section-header">${label}:</div>`);
+      // If content follows on the same line, render it as a paragraph
+      const inline = headerMatch[2].trim();
+      if (inline) {
+        const content = inline.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        htmlParts.push(`<p class="rec-para">${content}</p>`);
+      }
       continue;
     }
 
-    // Bullet points: - **label:** text  or  - text  or  * text
+    // Bullet points
     if (line.startsWith('- ') || line.startsWith('* ')) {
       if (!inList) { htmlParts.push('<ul class="rec-list">'); inList = true; }
       const content = line.slice(2).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -726,13 +732,30 @@ function renderMarkdown(text) {
       continue;
     }
 
-    // Regular paragraph text
+    // Regular paragraph
     if (inList) { htmlParts.push('</ul>'); inList = false; }
     const content = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     htmlParts.push(`<p class="rec-para">${content}</p>`);
   }
   if (inList) htmlParts.push('</ul>');
   return htmlParts.join('');
+}
+
+// Extract plain explanation text from a "None" Gemini response
+function extractNoneExplanation(text) {
+  // Try to grab content after "Why This Card Fits Your Spending:" on same or next line
+  const match = text.match(/Why This Card[^:]*:\s*([^\n]+(?:\n(?![A-Z*-]).*)*)/i);
+  if (match) {
+    return match[1].replace(/\*\*([^*]+)\*\*/g, '').replace(/\\\$/g, '$').trim();
+  }
+  // Fallback: strip all markdown headers/bullets and return plain text
+  return text
+    .replace(/(?:\*\*)?(?:Recommended Card|Why This Card[^:]*|Key Benefits[^:]*|Drawbacks[^:]*):(?:\*\*)?\s*/gi, '')
+    .replace(/^[-*]\s+/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/\\\$/g, '$')
+    .trim()
+    .split('\n').filter(l => l.trim()).slice(0, 3).join(' ');
 }
 
 async function loadRecommendation() {
@@ -743,12 +766,22 @@ async function loadRecommendation() {
   const res = await sendMessage('GET_RECOMMENDATION');
   if (res.success && res.recommendation) {
     const rawName = res.recommendedCardName || null;
-    // If Gemini said "None — your current cards are well-optimized" treat as no card
     const isNone = !rawName || /^none/i.test(rawName);
-    const cardName = isNone ? null : rawName;
-    const imgUrl = cardName ? findCardImageUrl(cardName) : null;
-    const markdownHtml = renderMarkdown(res.recommendation);
 
+    if (isNone) {
+      // Clean "already covered" view — no card image, no sections, just explanation
+      const explanation = extractNoneExplanation(res.recommendation);
+      el.innerHTML = `<div class="rec-covered">
+        <div class="rec-covered-check">✓</div>
+        <div class="rec-covered-title">You're already optimized</div>
+        <div class="rec-covered-body">${explanation || "Your current cards are already well-suited for your spending habits — no new card would meaningfully improve your rewards."}</div>
+      </div>`;
+      return;
+    }
+
+    const cardName = rawName;
+    const imgUrl = findCardImageUrl(cardName);
+    const markdownHtml = renderMarkdown(res.recommendation);
     const { potentialSavings = 0, actualEarned = 0, additionalValue = 0 } = res;
 
     const savingsHtml = additionalValue > 0 ? `
@@ -765,7 +798,7 @@ async function loadRecommendation() {
             <span class="savings-value actual">$${actualEarned.toFixed(2)}</span>
           </div>
           <div class="savings-row">
-            <span class="savings-label">Potential with ${cardName || 'this card'}</span>
+            <span class="savings-label">Potential with ${cardName}</span>
             <span class="savings-value potential">$${potentialSavings.toFixed(2)}</span>
           </div>
           <div class="savings-row savings-row-total">
@@ -783,7 +816,7 @@ async function loadRecommendation() {
             ? `<img class="rec-card-img" src="${imgUrl}" alt="${cardName}">`
             : `<div class="rec-card-fallback"></div>`}
         </div>
-        <div class="rec-card-name">${cardName || 'Capital One Card'}</div>
+        <div class="rec-card-name">${cardName}</div>
       </div>
       ${savingsHtml}
       <div class="rec-markdown">${markdownHtml}</div>`;
