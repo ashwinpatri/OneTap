@@ -478,9 +478,65 @@ async function loadRecommendation() {
   const res = await sendMessage('GET_RECOMMENDATION');
   if (res.success && res.recommendation) {
     el.textContent = res.recommendation;
+    if (res.spendingSummary && Object.keys(res.spendingSummary).length > 0) {
+      drawSpendingPieChart(res.spendingSummary);
+    }
   } else {
     el.textContent = `Error: ${res.error || 'Unknown error'}`;
   }
+}
+
+function drawSpendingPieChart(spendingSummary) {
+  const wrap = document.getElementById('ai-rec-chart-wrap');
+  const canvas = document.getElementById('ai-rec-chart');
+  const legend = document.getElementById('ai-rec-legend');
+  const ctx = canvas.getContext('2d');
+
+  const COLORS = [
+    '#004977', '#d03027', '#1a73e8', '#f5a623', '#34a853',
+    '#7b5ea7', '#00897b', '#e91e63', '#ff7043', '#8d6e63',
+  ];
+
+  const entries = Object.entries(spendingSummary).sort(([, a], [, b]) => b - a);
+  const total = entries.reduce((sum, [, v]) => sum + v, 0);
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = Math.min(cx, cy) - 8;
+  const innerR = r * 0.52;
+
+  let startAngle = -Math.PI / 2;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  entries.forEach(([, value], i) => {
+    const slice = (value / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.fill();
+    startAngle += slice;
+  });
+
+  // Donut hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+
+  // Legend
+  legend.innerHTML = entries.map(([cat, value], i) => {
+    const pct = ((value / total) * 100).toFixed(1);
+    const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+    return `<div class="ai-rec-legend-item">
+      <span class="ai-rec-legend-dot" style="background:${COLORS[i % COLORS.length]}"></span>
+      <span class="ai-rec-legend-label">${label}</span>
+      <span class="ai-rec-legend-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  wrap.style.display = 'flex';
 }
 
 // ===== Helpers =====

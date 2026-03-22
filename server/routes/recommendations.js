@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Transaction = require('../models/Transaction');
+const Card = require('../models/Card');
 
 const CARD_PRODUCTS = [
   {
@@ -73,6 +74,14 @@ router.get('/', auth, async (req, res) => {
       return res.json({ recommendation: 'No transactions found in the last month to base a recommendation on.', spendingSummary: {} });
     }
 
+    const userCards = await Card.find({ userId: req.userId, isActive: true }).select('productName');
+    const userCardNames = userCards.map(c => c.productName);
+
+    const topCategories = Object.entries(spendingByCategory)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([cat]) => cat);
+
     const spendingSummary = Object.entries(spendingByCategory)
       .map(([cat, amt]) => `${cat}: $${amt.toFixed(2)}`)
       .join(', ');
@@ -85,11 +94,17 @@ router.get('/', auth, async (req, res) => {
     }).join('\n');
 
     const prompt = `A user spent the following amounts last month: ${spendingSummary}.
+Their top spending categories were: ${topCategories.join(', ')}.
+The user currently has these Capital One cards: ${userCardNames.length > 0 ? userCardNames.join(', ') : 'none'}.
 
 Here are the available Capital One cards:
 ${cardList}
 
-Based purely on which card earns the most rewards for this spending mix, respond with exactly one sentence in this format: "We recommend the [Card Name] because [reason]." Do not include anything else.`;
+Based on this spending, determine the single best Capital One card for this user. Respond using EXACTLY this template, filling in the bracketed parts — do not add anything else:
+
+"Your largest categories this month were [category 1], [category 2], and [category 3], and based off your spending, the best card for you would be the [Card Name]. You [already have / do not yet have] this card, [great job maximizing your rewards! / explore the [Card Name] to maximize your rewards!]"
+
+Use "already have" and "great job maximizing your rewards!" if the user's card list includes the recommended card. Otherwise use "do not yet have" and "explore the [Card Name] to maximize your rewards!".`;
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${apiKey}`,
@@ -110,7 +125,7 @@ Based purely on which card earns the most rewards for this spending mix, respond
     const geminiData = await geminiRes.json();
     const recommendation = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
-    res.json({ recommendation, spendingSummary: spendingByCategory });
+    res.json({ recommendation, spendingSummary: spendingByCategory, userCardNames });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
