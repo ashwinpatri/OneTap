@@ -32,7 +32,22 @@ async function refreshData() {
   }
 }
 
+async function pollForGoogleToken(session, attempts = 0) {
+  if (attempts > 80) return;
+  try {
+    const res = await fetch(`https://onetap-ten.vercel.app/api/auth/google/poll?session=${session}`);
+    const data = await res.json();
+    if (data.ready) {
+      await chrome.storage.local.set({ authToken: data.token });
+      await refreshData();
+      return;
+    }
+  } catch (_) {}
+  setTimeout(() => pollForGoogleToken(session, attempts + 1), 1500);
+}
+
 chrome.runtime.onInstalled.addListener(() => refreshData());
+
 
 // Message handler
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -43,6 +58,29 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 async function handleMessage(message) {
   switch (message.type) {
     // ===== Auth =====
+    case 'START_GOOGLE_POLL': {
+      const { session } = message.payload;
+      pollForGoogleToken(session);
+      return { started: true };
+    }
+
+    case 'GOOGLE_LOGIN': {
+      try {
+        const CLIENT_ID = '196802038272-qusfgtfsl6n515seqh22cqf28koh7b6t.apps.googleusercontent.com';
+        const REDIRECT_URI = 'https://iglldahcailcddegenopplhmeoebhohh.chromiumapp.org/';
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=email%20profile`;
+        const redirectUrl = await chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true });
+        const params = new URLSearchParams(new URL(redirectUrl).hash.slice(1));
+        const googleToken = params.get('access_token');
+        if (!googleToken) return { success: false, error: 'No token received' };
+        const data = await api.googleLogin(googleToken);
+        await refreshData();
+        return { success: true, user: data.user };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    }
+
     case 'LOGIN': {
       try {
         const { username, password } = message.payload;
