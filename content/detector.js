@@ -31,20 +31,32 @@
 
       // Try to extract the total price
       let estimatedTotal = null;
-      for (const selector of PRICE_SELECTORS) {
-        const el = document.querySelector(selector);
-        if (el) {
-          estimatedTotal = OneTapUtils.extractPrice(el.textContent);
-          if (estimatedTotal) break;
+      const allText = document.body.innerText;
+
+      // 1. Look for "Total" followed by a dollar amount (most reliable)
+      const totalMatch = allText.match(/\btotal\b[:\s$]*\$?\s?([\d,]+\.\d{2})/i);
+      if (totalMatch) {
+        estimatedTotal = parseFloat(totalMatch[1].replace(/,/g, ''));
+      }
+
+      // 2. Try specific selectors
+      if (!estimatedTotal) {
+        for (const selector of PRICE_SELECTORS) {
+          const el = document.querySelector(selector);
+          if (el) {
+            estimatedTotal = OneTapUtils.extractPrice(el.textContent);
+            if (estimatedTotal) break;
+          }
         }
       }
 
-      // Fallback: scan for dollar amounts near "total"
+      // 3. Last resort: find all dollar amounts on the page and pick the highest
       if (!estimatedTotal) {
-        const allText = document.body.innerText;
-        const totalMatch = allText.match(/total[:\s]*\$?([\d,]+\.?\d{0,2})/i);
-        if (totalMatch) {
-          estimatedTotal = parseFloat(totalMatch[1].replace(/,/g, ''));
+        const allPrices = [...allText.matchAll(/\$\s?([\d,]+\.\d{2})/g)]
+          .map(m => parseFloat(m[1].replace(/,/g, '')))
+          .filter(p => p > 0 && p < 100000);
+        if (allPrices.length > 0) {
+          estimatedTotal = Math.max(...allPrices);
         }
       }
 
