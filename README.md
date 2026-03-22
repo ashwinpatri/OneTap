@@ -96,7 +96,6 @@ CapitalOneTap/
 | Layer | Technology |
 |---|---|
 | Extension | Chrome Manifest V3, Vanilla JS |
-| Fonts | Capital One Optimist |
 | Auth | Google OAuth 2.0 |
 | API | Node.js on Render |
 | Web App | Vercel |
@@ -114,4 +113,4 @@ CapitalOneTap/
 
 ## Disclaimer
 
-This is an independent, unofficial project. It is not affiliated with, endorsed by, or sponsored by Capital One Financial Corporation. Capital One® and related marks are trademarks of Capital One.
+This is an independent, unofficial project, built for the VandyHacks x CapitalOne Hackathon. It is not affiliated with, endorsed by, or sponsored by Capital One Financial Corporation. Capital One® and related marks are trademarks of Capital One.
