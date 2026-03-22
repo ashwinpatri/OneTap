@@ -168,13 +168,25 @@ router.get('/google/callback', async (req, res) => {
     // Generate JWT and send to extension via postMessage
     const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
     res.send(`<!DOCTYPE html><html><head><title>Signing in…</title></head><body>
-      <p style="font-family:sans-serif;text-align:center;margin-top:20vh;">Signing you in…</p>
+      <p id="msg" style="font-family:sans-serif;text-align:center;margin-top:20vh;font-size:1.1rem;">Signing you in…</p>
       <script>
-        chrome.runtime.sendMessage(
-          'iglldahcailcddegenopplhmeoebhohh',
-          { type: 'GOOGLE_AUTH', token: '${jwtToken}' },
-          function() { window.close(); }
-        );
+        const token = ${JSON.stringify(jwtToken)};
+        const EXT_ID = 'iglldahcailcddegenopplhmeoebhohh';
+        try {
+          if (typeof chrome === 'undefined' || !chrome.runtime) {
+            document.getElementById('msg').textContent = 'Error: chrome.runtime not available. Make sure the extension is loaded.';
+          } else {
+            chrome.runtime.sendMessage(EXT_ID, { type: 'GOOGLE_AUTH', token }, function(response) {
+              if (chrome.runtime.lastError) {
+                document.getElementById('msg').textContent = 'Error: ' + chrome.runtime.lastError.message;
+              } else {
+                document.getElementById('msg').textContent = 'Signed in! You can close this tab.';
+              }
+            });
+          }
+        } catch(e) {
+          document.getElementById('msg').textContent = 'Error: ' + e.message;
+        }
       </script>
     </body></html>`);
   } catch (err) {
