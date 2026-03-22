@@ -29,53 +29,75 @@
     if (urlMatch || domMatch || titleMatch) {
       detected = true;
 
-      // Try to extract the total price
-      let estimatedTotal = null;
-      const allText = document.body.innerText;
+      const merchant = OneTapUtils.getMerchantName();
 
-      // 1. Look for "Total" followed by a dollar amount (most reliable)
-      const totalMatch = allText.match(/\btotal\b[:\s$]*\$?\s?([\d,]+\.\d{2})/i);
-      if (totalMatch) {
-        estimatedTotal = parseFloat(totalMatch[1].replace(/,/g, ''));
-      }
+      function extractPrice() {
+        const allText = document.body.innerText;
 
-      // 2. Try specific selectors
-      if (!estimatedTotal) {
+        // 1. Look for standalone "Total" (not subtotal/pretotal) followed by a dollar amount
+        const lines = allText.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          // Skip lines with "subtotal", "pretotal", "savings" etc
+          if (/sub\s*total|pre\s*total|savings|shipping|tax|estimated/i.test(trimmed)) continue;
+          const match = trimmed.match(/\btotal\b[:\s$]*\$?\s?([\d,]+\.\d{2})/i);
+          if (match) return parseFloat(match[1].replace(/,/g, ''));
+        }
+
+        // 2. Try specific selectors
         for (const selector of PRICE_SELECTORS) {
           const el = document.querySelector(selector);
           if (el) {
-            estimatedTotal = OneTapUtils.extractPrice(el.textContent);
-            if (estimatedTotal) break;
+            const price = OneTapUtils.extractPrice(el.textContent);
+            if (price) return price;
           }
         }
-      }
 
-      // 3. Last resort: find all dollar amounts on the page and pick the highest
-      if (!estimatedTotal) {
+        // 3. Last resort: find all dollar amounts on the page and pick the highest
         const allPrices = [...allText.matchAll(/\$\s?([\d,]+\.\d{2})/g)]
           .map(m => parseFloat(m[1].replace(/,/g, '')))
           .filter(p => p > 0 && p < 100000);
-        if (allPrices.length > 0) {
-          estimatedTotal = Math.max(...allPrices);
-        }
+        if (allPrices.length > 0) return Math.max(...allPrices);
+
+        return 0;
       }
 
-      const merchant = OneTapUtils.getMerchantName();
+      function sendDetection(amount) {
+        chrome.runtime.sendMessage({
+          type: MSG.CHECKOUT_DETECTED,
+          payload: {
+            merchant,
+            amount: amount || 0,
+            url: window.location.href,
+            pageTitle: document.title,
+          }
+        }, (response) => {
+          if (response && response.bestCard) {
+            OneTapInjector.show(response, merchant, amount);
+          }
+        });
+      }
 
-      // Notify background
-      chrome.runtime.sendMessage({
-        type: MSG.CHECKOUT_DETECTED,
-        payload: {
-          merchant,
-          amount: estimatedTotal || 0,
-          url: window.location.href,
-          pageTitle: document.title,
+      // Wait for price to stabilize (tax/shipping may load after initial render)
+      let lastPrice = 0;
+      let stableCount = 0;
+      let checks = 0;
+      const maxChecks = 10;
+      const priceTimer = setInterval(() => {
+        checks++;
+        const currentPrice = extractPrice();
+        if (currentPrice > 0 && currentPrice === lastPrice) {
+          stableCount++;
+        } else {
+          stableCount = 0;
         }
-      }, (response) => {
-        if (response && response.bestCard) {
-          OneTapInjector.show(response, merchant, estimatedTotal);
+        lastPrice = currentPrice;
+        // Send once price is stable for 2 consecutive checks, or after max attempts
+        if ((stableCount >= 2 && currentPrice > 0) || checks >= maxChecks) {
+          clearInterval(priceTimer);
+          sendDetection(currentPrice);
         }
-      });
+      }, 800);
     }
   }
 
