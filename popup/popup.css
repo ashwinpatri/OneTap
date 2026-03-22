@@ -1072,20 +1072,18 @@ body {
 
 /* Spending chart */
 .spending-chart-center {
-  flex-shrink: 0;
-  flex: 0 0 38%;
+  flex: 0 0 47%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .spending-legend {
-  flex: 0 0 62%;
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-left: 18px;
-  min-width: 0;
+  padding-right: 4px;
 }
 
 /* Savings tally */
