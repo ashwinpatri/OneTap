@@ -34,6 +34,17 @@ async function refreshData() {
 
 chrome.runtime.onInstalled.addListener(() => refreshData());
 
+// External messages from onetap-api.onrender.com callback page
+chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) => {
+  if (message.type === 'GOOGLE_AUTH') {
+    chrome.storage.local.set({ authToken: message.token }, async () => {
+      await refreshData();
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+});
+
 // Message handler
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   handleMessage(message).then(sendResponse);
