@@ -577,6 +577,41 @@ body {
   font-style: italic;
 }
 
+.rec-covered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  gap: var(--space-sm);
+}
+
+.rec-covered-check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--co-success);
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.rec-covered-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--co-dark);
+}
+
+.rec-covered-body {
+  font-size: 13px;
+  color: var(--co-gray-500);
+  line-height: 1.6;
+  max-width: 300px;
+}
+
 .rec-spotlight {
   display: flex;
   flex-direction: column;
