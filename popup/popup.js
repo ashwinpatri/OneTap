@@ -677,15 +677,42 @@ async function loadSpendingChart() {
   }
 }
 
+function findCardImageUrl(cardName) {
+  const exact = getCardImageUrl(cardName);
+  if (exact) return exact;
+  // Fuzzy match — "Venture X" matches "Venture X Rewards"
+  const nameLower = cardName.toLowerCase();
+  const fuzzyKey = Object.keys(CARD_IMAGE_FILES).find(k =>
+    k.toLowerCase().includes(nameLower) || nameLower.includes(k.toLowerCase().split(' ').slice(0, 2).join(' '))
+  );
+  return fuzzyKey ? getCardImageUrl(fuzzyKey) : null;
+}
+
 async function loadRecommendation() {
   const el = document.getElementById('ai-rec-body');
   el.style.display = 'block';
-  el.textContent = 'Analyzing your spending...';
+  el.innerHTML = `<div class="rec-loading">Analyzing your spending...</div>`;
+
   const res = await sendMessage('GET_RECOMMENDATION');
   if (res.success && res.recommendation) {
-    el.textContent = res.recommendation;
+    const text = res.recommendation;
+    const parsed = text.match(/we recommend the (.+?) because (.+)/i);
+    const cardName = parsed ? parsed[1].trim() : null;
+    const reason = parsed ? parsed[2].replace(/\.$/, '').trim() : text;
+    const imgUrl = cardName ? findCardImageUrl(cardName) : null;
+
+    el.innerHTML = `
+      <div class="rec-spotlight">
+        <div class="rec-card-visual">
+          ${imgUrl
+            ? `<img class="rec-card-img" src="${imgUrl}" alt="${cardName}">`
+            : `<div class="rec-card-fallback"></div>`}
+        </div>
+        <div class="rec-card-name">${cardName || 'Capital One Card'}</div>
+        <div class="rec-reason">${reason}</div>
+      </div>`;
   } else {
-    el.textContent = 'Could not load recommendation — server may be warming up, try again in a moment.';
+    el.innerHTML = `<div class="rec-loading">Server warming up — try again in a moment.</div>`;
   }
 }
 
@@ -730,6 +757,16 @@ function drawSpendingChart(spendingSummary) {
   ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
+
+  // Total spending in center
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#1A1A1A';
+  ctx.font = `bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+  ctx.fillText(`$${total.toLocaleString()}`, cx, cy - 7);
+  ctx.fillStyle = '#9E9E9E';
+  ctx.font = `10px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+  ctx.fillText('spent', cx, cy + 8);
 
   legend.innerHTML = entries.slice(0, 6).map(([cat, amt], i) => `
     <div class="ai-rec-legend-item">
