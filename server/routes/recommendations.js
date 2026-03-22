@@ -249,4 +249,49 @@ RULES:
   }
 });
 
+// POST /api/recommendations/extract-price — Gemini fallback price extractor
+// Only called when the DOM walker gives up (returns 0). It's fine if Gemini
+// can't find a price either — respond with null and move on.
+router.post('/extract-price', auth, async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return res.json({ price: null });
+
+    const { pageText } = req.body;
+    if (!pageText) return res.json({ price: null });
+
+    const prompt = `You are a checkout price extractor. Your only job is to find the single final total amount the customer will pay on this checkout page.
+
+Rules:
+- Return ONLY the numeric value of the grand total (e.g. 79.98)
+- The grand total includes tax and shipping — not a subtotal or individual item price
+- If you are not confident you found the correct final total, respond with exactly: null
+- No words, no $ sign, no explanation — just the number or null
+
+Page text:
+${pageText.slice(0, 6000)}`;
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      }
+    );
+
+    if (!geminiRes.ok) return res.json({ price: null });
+
+    const geminiData = await geminiRes.json();
+    const raw = (geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+
+    if (!raw || raw.toLowerCase() === 'null') return res.json({ price: null });
+
+    const price = parseFloat(raw.replace(/[^0-9.]/g, ''));
+    res.json({ price: isNaN(price) || price < 1 ? null : price });
+  } catch (err) {
+    res.json({ price: null }); // fail silently — this is a last-resort fallback
+  }
+});
+
 module.exports = router;

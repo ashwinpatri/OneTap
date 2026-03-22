@@ -148,6 +148,13 @@ export async function fetchSpending() {
   return apiFetch('/recommendations/spending');
 }
 
+export async function extractPriceFromPage(pageText) {
+  return apiFetch('/recommendations/extract-price', {
+    method: 'POST',
+    body: JSON.stringify({ pageText }),
+  });
+}
+
 // ===== Settings =====
 export async function updateSettings(settings) {
   const data = await apiFetch('/auth/settings', {

@@ -73,7 +73,17 @@
 
       // Poll for a confident price in the background and update before the user taps
       const total = await waitForTotal();
-      if (total > 0) OneTapInjector.updateAmount(total);
+      if (total > 0) {
+        OneTapInjector.updateAmount(total);
+      } else {
+        // Gemini fallback — DOM walker gave up; let Gemini read the page text.
+        // Only fires on confirmed checkout pages. Fine if it also returns nothing.
+        const pageText = document.body.innerText;
+        chrome.runtime.sendMessage(
+          { type: MSG.EXTRACT_PRICE, payload: { pageText: pageText.slice(0, 6000) } },
+          (res) => { if (res?.price > 0) OneTapInjector.updateAmount(res.price); }
+        );
+      }
     });
   }
 

@@ -207,6 +207,15 @@ async function handleMessage(message) {
       }
     }
 
+    case 'EXTRACT_PRICE': {
+      try {
+        const data = await api.extractPriceFromPage(message.payload.pageText);
+        return { price: data.price };
+      } catch (e) {
+        return { price: null };
+      }
+    }
+
     case 'GET_RECOMMENDATION': {
       try {
         const data = await api.fetchRecommendation();
