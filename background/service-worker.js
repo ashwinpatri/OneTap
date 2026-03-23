@@ -32,12 +32,16 @@ async function refreshData() {
   }
 }
 
-async function pollForGoogleToken(session, attempts = 0) {
-  if (attempts > 80) return;
+async function pollForGoogleToken() {
+  const { googlePollSession } = await chrome.storage.local.get('googlePollSession');
+  if (!googlePollSession) return;
+
   try {
-    const res = await fetch(`https://onetap-ten.vercel.app/api/auth/google/poll?session=${session}`);
+    const res = await fetch(`https://onetap-ten.vercel.app/api/auth/google/poll?session=${googlePollSession}`);
     const data = await res.json();
     if (data.ready) {
+      await chrome.alarms.clear('googlePoll');
+      await chrome.storage.local.remove('googlePollSession');
       await chrome.storage.local.set({ authToken: data.token });
       try {
         const meRes = await fetch('https://onetap-api.onrender.com/api/auth/me', {
@@ -47,11 +51,13 @@ async function pollForGoogleToken(session, attempts = 0) {
         if (meData.user) await chrome.storage.local.set({ user: meData.user });
       } catch (_) {}
       await refreshData();
-      return;
     }
   } catch (_) {}
-  setTimeout(() => pollForGoogleToken(session, attempts + 1), 1500);
 }
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'googlePoll') pollForGoogleToken();
+});
 
 chrome.runtime.onInstalled.addListener(() => refreshData());
 
@@ -67,7 +73,8 @@ async function handleMessage(message) {
     // ===== Auth =====
     case 'START_GOOGLE_POLL': {
       const { session } = message.payload;
-      pollForGoogleToken(session);
+      await chrome.storage.local.set({ googlePollSession: session });
+      await chrome.alarms.create('googlePoll', { periodInMinutes: 1/40 }); // every 1.5s
       return { started: true };
     }
 
