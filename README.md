@@ -18,7 +18,7 @@
 
 ## Overview
 
-OneTap is a Chrome extension that brings Capital One to every checkout. It automatically detects purchase pages, surfaces your best available offer, and lets you complete a transaction without leaving the page. Sign in once with Google — it handles the rest.
+OneTap is a Chrome extension that brings Capital One to every checkout. It automatically detects purchase pages, surfaces your best available offer, and lets you complete a transaction without leaving the page. Sign in once with Google, it handles the rest.
 
 ---
 
